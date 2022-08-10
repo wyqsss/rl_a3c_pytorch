@@ -72,7 +72,11 @@ def test(args, shared_model, env_conf, epochs):
             reward_total_sum += reward_sum
             reward_mean = reward_total_sum / num_tests
             log['{}_log'.format(args.env)].info(
+<<<<<<< HEAD
                 "Time {0}, epoch {4} , episode reward {1}, episode length {2}, reward mean {3:.4f}".
+=======
+                "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}".
+>>>>>>> cb3c3910e9a0ba09f92a25ed8ed5a2f6df7d5b9a
                 format(
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
