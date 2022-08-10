@@ -32,7 +32,7 @@ class Agent(object):
         action = prob.multinomial(1).data
         log_prob = log_prob.gather(1, Variable(action))
         state, self.reward, self.done, self.info = self.env.step(
-            action.cpu().numpy())
+            action[0][0].cpu().numpy())
         self.state = torch.from_numpy(state).float()
         if self.gpu_id >= 0:
             with torch.cuda.device(self.gpu_id):

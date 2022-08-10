@@ -153,14 +153,14 @@ if __name__ == '__main__':
         optimizer = None
 
     processes = []
-
-    p = mp.Process(target=test, args=(args, shared_model, env_conf))
+    epochs = mp.Value("d", 0) 
+    p = mp.Process(target=test, args=(args, shared_model, env_conf, epochs))
     p.start()
     processes.append(p)
     time.sleep(0.1)
     for rank in range(0, args.workers):
         p = mp.Process(
-            target=train, args=(rank, args, shared_model, optimizer, env_conf))
+            target=train, args=(rank, args, shared_model, optimizer, env_conf, epochs))
         p.start()
         processes.append(p)
         time.sleep(0.1)
