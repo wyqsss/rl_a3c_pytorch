@@ -9,7 +9,7 @@ from player_util import Agent
 from torch.autograd import Variable
 
 
-def train(rank, args, shared_model, optimizer, env_conf):
+def train(rank, args, shared_model, optimizer, env_conf, epochs):
     ptitle('Training Agent: {}'.format(rank))
     gpu_id = args.gpu_ids[rank % len(args.gpu_ids)]
     torch.manual_seed(args.seed + rank)
@@ -103,4 +103,5 @@ def train(rank, args, shared_model, optimizer, env_conf):
         (policy_loss + 0.5 * value_loss).backward()
         ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
         optimizer.step()
+        with epochs.get_lock(): epochs.value += 1
         player.clear_actions()

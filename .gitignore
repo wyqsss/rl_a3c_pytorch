@@ -1,2 +1,6 @@
 *~
 .DS_Store
+*.pyc
+logs/
+trained_models/
+*.log

@@ -10,7 +10,7 @@ import time
 import logging
 
 
-def test(args, shared_model, env_conf):
+def test(args, shared_model, env_conf, epochs):
     ptitle('Test Agent')
     gpu_id = args.gpu_ids[-1]
     log = {}
@@ -43,7 +43,7 @@ def test(args, shared_model, env_conf):
             player.model = player.model.cuda()
             player.state = player.state.cuda()
     flag = True
-    max_score = 0
+    max_score = -22
     while True:
         if flag:
             if gpu_id >= 0:
@@ -51,10 +51,12 @@ def test(args, shared_model, env_conf):
                     player.model.load_state_dict(shared_model.state_dict())
             else:
                 player.model.load_state_dict(shared_model.state_dict())
+            ep = epochs.value
             player.model.eval()
             flag = False
 
         player.action_test()
+        # log['{}_log'.format(args.env)].info(f"play action, info is {player.info}")
         reward_sum += player.reward
 
         if player.done and not player.info:
@@ -70,22 +72,22 @@ def test(args, shared_model, env_conf):
             reward_total_sum += reward_sum
             reward_mean = reward_total_sum / num_tests
             log['{}_log'.format(args.env)].info(
-                "Time {0}, episode reward {1}, episode length {2}, reward mean {3:.4f}".
+                "Time {0}, epoch {4} , episode reward {1}, episode length {2}, reward mean {3:.4f}".
                 format(
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
-                    reward_sum, player.eps_len, reward_mean))
+                    reward_sum, player.eps_len, reward_mean, ep))
 
             if args.save_max and reward_sum >= max_score:
                 max_score = reward_sum
                 if gpu_id >= 0:
                     with torch.cuda.device(gpu_id):
-                        state_to_save = player.model.state_dict()
-                        torch.save(state_to_save, '{0}{1}.dat'.format(
+                        state_to_save = player.model
+                        torch.save(state_to_save, '{0}{1}.pth'.format(
                             args.save_model_dir, args.env))
                 else:
-                    state_to_save = player.model.state_dict()
-                    torch.save(state_to_save, '{0}{1}.dat'.format(
+                    state_to_save = player.model
+                    torch.save(state_to_save, '{0}{1}.pth'.format(
                         args.save_model_dir, args.env))
 
             reward_sum = 0
