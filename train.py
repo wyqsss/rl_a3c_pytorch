@@ -113,7 +113,7 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
                 policy_loss = policy_loss - \
                     player.log_probs[i] * \
                     Variable(gae) - 0.01 * player.entropies[i]
-            value_loss = sum(value_loss) / args.n_heads
+            value_loss = sum(value_loss) #/ args.n_heads
             player.model.zero_grad()
             (policy_loss + 0.5 * value_loss).backward()
             ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)

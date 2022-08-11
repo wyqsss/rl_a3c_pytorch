@@ -52,6 +52,7 @@ def test(args, shared_model, env_conf, epochs):
             else:
                 player.model.load_state_dict(shared_model.state_dict())
             ep = epochs.value
+            left_advice = args.budget.value
             player.model.eval()
             flag = False
 
@@ -72,11 +73,11 @@ def test(args, shared_model, env_conf, epochs):
             reward_total_sum += reward_sum
             reward_mean = reward_total_sum / num_tests
             log['{}_log'.format(args.env)].info(
-                "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}".
+                "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}, left advice {5}".
                 format(
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
-                    reward_sum, player.eps_len, reward_mean, ep))
+                    reward_sum, player.eps_len, reward_mean, ep, left_advice))
 
             if args.save_max and reward_sum >= max_score:
                 max_score = reward_sum
