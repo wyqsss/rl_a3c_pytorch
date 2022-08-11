@@ -170,6 +170,8 @@ if __name__ == '__main__':
     print("start")
     processes = []
     epochs = mp.Value("d", 0) 
+    budget = mp.Value("d", args.budget)
+    args.budget = budget
     p = mp.Process(target=test, args=(args, shared_model, env_conf, epochs))
     p.start()
     processes.append(p)

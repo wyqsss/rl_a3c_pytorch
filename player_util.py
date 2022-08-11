@@ -34,14 +34,15 @@ class Agent(object):
         self.entropies.append(entropy)
         action = prob.multinomial(1).data
         # print(f"action is {action[0][0].cpu().numpy()}")
-        if self.args.n_heads > 1 and self.demonstration and self.budget > 0:
+        if self.args.n_heads > 1 and self.demonstration and self.budget.value > 0:
             uncertainty = torch.var(torch.tensor(value))
             # print(f"uncertain is {uncertainty}")
+            # print(f"budget is {self.budget.value}, device is {next(self.model.parameters()).device}")
             if uncertainty > self.sigma:
                 _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
                 qs = F.softmax(qs, dim=1)
                 action = qs.multinomial(1).data
-                self.budget -= 1
+                with self.budget.get_lock(): self.budget.value -= 1
 
         log_prob = log_prob.gather(1, Variable(action))
         state, self.reward, self.done, self.info = self.env.step(
