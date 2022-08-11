@@ -23,10 +23,13 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
             optimizer = optim.Adam(
                 shared_model.parameters(), lr=args.lr, amsgrad=args.amsgrad)
     env.seed(args.seed + rank)
-    player = Agent(None, env, args, None)
+    demo = A3Clstm(env.observation_space.shape[0], env.action_space)
+    demo.load_state_dict(torch.load("trained_models/demo.dat", map_location="cpu"))
+    demo.eval()
+    player = Agent(None, env, args, None, demo=demo)
     player.gpu_id = gpu_id
     player.model = A3Clstm(player.env.observation_space.shape[0],
-                           player.env.action_space)
+                           player.env.action_space, args.n_heads)
 
     player.state = player.env.reset()
     player.state = torch.from_numpy(player.state).float()
@@ -34,6 +37,7 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
         with torch.cuda.device(gpu_id):
             player.state = player.state.cuda()
             player.model = player.model.cuda()
+            player.demonstration = player.demonstration.cuda()
     player.model.train()
     player.eps_len += 2
     while True:
@@ -66,42 +70,75 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
                 with torch.cuda.device(gpu_id):
                     player.state = player.state.cuda()
 
-        R = torch.zeros(1, 1)
+        R = torch.zeros(args.n_heads, 1) if args.n_heads > 1 else torch.zeros(1, 1)
         if not player.done:
             value, _, _ = player.model((Variable(player.state.unsqueeze(0)),
                                         (player.hx, player.cx)))
-            R = value.data
+            if args.n_heads > 1:
+                for i in range(args.n_heads):
+                    R[i] = value[i].data[0]
+            else:
+                R = value.data
 
         if gpu_id >= 0:
             with torch.cuda.device(gpu_id):
                 R = R.cuda()
 
         player.values.append(Variable(R))
+        if args.n_heads > 1:
+            value_loss = [0 for i in range(args.n_heads)]
+        else:
+            value_loss = 0
         policy_loss = 0
-        value_loss = 0
         gae = torch.zeros(1, 1)
         if gpu_id >= 0:
             with torch.cuda.device(gpu_id):
                 gae = gae.cuda()
         R = Variable(R)
-        for i in reversed(range(len(player.rewards))):
-            R = args.gamma * R + player.rewards[i]
-            advantage = R - player.values[i]
-            value_loss = value_loss + 0.5 * advantage.pow(2)
+        if args.n_heads > 1:
+            for i in reversed(range(len(player.rewards))):
+                avg_1 = 0
+                avg_ = 0
+                for k in range(args.n_heads):
+                    R[k] = args.gamma * R[k] + player.rewards[i]
+                    advantage = R[k] - player.values[i][k]
+                    value_loss[k] = value_loss[k] + 0.5 * advantage.pow(2)
+                    avg_1 += player.values[i + 1][k].data
+                    avg_ += player.values[i][k].data
 
-            # Generalized Advantage Estimataion
-            delta_t = player.rewards[i] + args.gamma * \
-                player.values[i + 1].data - player.values[i].data
+                # Generalized Advantage Estimataion
+                delta_t = player.rewards[i] + args.gamma * avg_1 - avg_
+                gae = gae * args.gamma * args.tau + delta_t
 
-            gae = gae * args.gamma * args.tau + delta_t
+                policy_loss = policy_loss - \
+                    player.log_probs[i] * \
+                    Variable(gae) - 0.01 * player.entropies[i]
+            value_loss = sum(value_loss) / args.n_heads
+            player.model.zero_grad()
+            (policy_loss + 0.5 * value_loss).backward()
+            ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
+            optimizer.step()
+            with epochs.get_lock(): epochs.value += 1
+            player.clear_actions()
+        else:
+            for i in reversed(range(len(player.rewards))):
+                R = args.gamma * R + player.rewards[i]
+                advantage = R - player.values[i]
+                value_loss = value_loss + 0.5 * advantage.pow(2)
 
-            policy_loss = policy_loss - \
-                player.log_probs[i] * \
-                Variable(gae) - 0.01 * player.entropies[i]
+                # Generalized Advantage Estimataion
+                delta_t = player.rewards[i] + args.gamma * \
+                    player.values[i + 1].data - player.values[i].data
 
-        player.model.zero_grad()
-        (policy_loss + 0.5 * value_loss).backward()
-        ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
-        optimizer.step()
-        with epochs.get_lock(): epochs.value += 1
-        player.clear_actions()
+                gae = gae * args.gamma * args.tau + delta_t
+
+                policy_loss = policy_loss - \
+                    player.log_probs[i] * \
+                    Variable(gae) - 0.01 * player.entropies[i]
+
+            player.model.zero_grad()
+            (policy_loss + 0.5 * value_loss).backward()
+            ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
+            optimizer.step()
+            with epochs.get_lock(): epochs.value += 1
+            player.clear_actions()

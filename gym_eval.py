@@ -76,6 +76,21 @@ parser.add_argument(
     default=False,
     metavar='NGE',
     help='Create a gym evaluation for upload')
+parser.add_argument(
+    '--n_heads',
+    type=int,
+    default=1,
+    help='num_heads of critic (default: 1)')
+parser.add_argument(
+    '--sigma',
+    type=float,
+    default=0.1,
+    help='uncertain 的阈值')
+parser.add_argument(
+    '--budget',
+    type=int,
+    default=10000,
+    help='uncertain 的阈值')
 args = parser.parse_args()
 
 setup_json = read_config(args.env_config)
@@ -110,7 +125,7 @@ start_time = time.time()
 reward_total_sum = 0
 player = Agent(None, env, args, None)
 player.model = A3Clstm(player.env.observation_space.shape[0],
-                       player.env.action_space)
+                       player.env.action_space, args.n_heads)
 player.gpu_id = gpu_id
 if gpu_id >= 0:
     with torch.cuda.device(gpu_id):

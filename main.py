@@ -113,6 +113,21 @@ parser.add_argument(
     default=4,
     metavar='SR',
     help='frame skip rate (default: 4)')
+parser.add_argument(
+    '--n_heads',
+    type=int,
+    default=1,
+    help='num_heads of critic (default: 1)')
+parser.add_argument(
+    '--sigma',
+    type=float,
+    default=0.1,
+    help='uncertain 的阈值')
+parser.add_argument(
+    '--budget',
+    type=int,
+    default=10000,
+    help='uncertain 的阈值')
 
 # Based on
 # https://github.com/pytorch/examples/tree/master/mnist_hogwild
@@ -134,7 +149,7 @@ if __name__ == '__main__':
         if i in args.env:
             env_conf = setup_json[i]
     env = atari_env(args.env, env_conf, args)
-    shared_model = A3Clstm(env.observation_space.shape[0], env.action_space)
+    shared_model = A3Clstm(env.observation_space.shape[0], env.action_space, args.n_heads)
     if args.load:
         saved_state = torch.load(
             '{0}{1}.dat'.format(args.load_model_dir, args.env),

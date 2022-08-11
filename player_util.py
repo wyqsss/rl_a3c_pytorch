@@ -5,8 +5,9 @@ from torch.autograd import Variable
 
 
 class Agent(object):
-    def __init__(self, model, env, args, state):
+    def __init__(self, model, env, args, state, demo=None):
         self.model = model
+        self.demonstration = demo
         self.env = env
         self.state = state
         self.hx = None
@@ -20,6 +21,8 @@ class Agent(object):
         self.done = True
         self.info = None
         self.reward = 0
+        self.sigma = self.args.sigma
+        self.budget = self.args.budget
         self.gpu_id = -1
 
     def action_train(self):
@@ -31,6 +34,15 @@ class Agent(object):
         self.entropies.append(entropy)
         action = prob.multinomial(1).data
         # print(f"action is {action[0][0].cpu().numpy()}")
+        if self.args.n_heads > 1 and self.demonstration and self.budget > 0:
+            uncertainty = torch.var(torch.tensor(value))
+            # print(f"uncertain is {uncertainty}")
+            if uncertainty > self.sigma:
+                _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
+                qs = F.softmax(qs, dim=1)
+                action = qs.multinomial(1).data
+                self.budget -= 1
+
         log_prob = log_prob.gather(1, Variable(action))
         state, self.reward, self.done, self.info = self.env.step(
             action[0][0].cpu().numpy())

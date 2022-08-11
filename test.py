@@ -33,7 +33,7 @@ def test(args, shared_model, env_conf, epochs):
     player = Agent(None, env, args, None)
     player.gpu_id = gpu_id
     player.model = A3Clstm(player.env.observation_space.shape[0],
-                           player.env.action_space)
+                           player.env.action_space, args.n_heads)
 
     player.state = player.env.reset()
     player.eps_len += 2
@@ -72,11 +72,7 @@ def test(args, shared_model, env_conf, epochs):
             reward_total_sum += reward_sum
             reward_mean = reward_total_sum / num_tests
             log['{}_log'.format(args.env)].info(
-<<<<<<< HEAD
-                "Time {0}, epoch {4} , episode reward {1}, episode length {2}, reward mean {3:.4f}".
-=======
                 "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}".
->>>>>>> cb3c3910e9a0ba09f92a25ed8ed5a2f6df7d5b9a
                 format(
                     time.strftime("%Hh %Mm %Ss",
                                   time.gmtime(time.time() - start_time)),
@@ -86,12 +82,12 @@ def test(args, shared_model, env_conf, epochs):
                 max_score = reward_sum
                 if gpu_id >= 0:
                     with torch.cuda.device(gpu_id):
-                        state_to_save = player.model
-                        torch.save(state_to_save, '{0}{1}.pth'.format(
+                        state_to_save = player.model.state_dict()
+                        torch.save(state_to_save, '{0}{1}.dat'.format(
                             args.save_model_dir, args.env))
                 else:
                     state_to_save = player.model
-                    torch.save(state_to_save, '{0}{1}.pth'.format(
+                    torch.save(state_to_save, '{0}{1}.dat'.format(
                         args.save_model_dir, args.env))
 
             reward_sum = 0
