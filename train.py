@@ -106,6 +106,8 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
                     avg_1 += player.values[i + 1][k].data
                     avg_ += player.values[i][k].data
 
+                avg_ = avg_ / args.n_heads
+                avg_1 = avg_1 / args.n_heads
                 # Generalized Advantage Estimataion
                 delta_t = player.rewards[i] + args.gamma * avg_1 - avg_
                 gae = gae * args.gamma * args.tau + delta_t
@@ -113,7 +115,7 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
                 policy_loss = policy_loss - \
                     player.log_probs[i] * \
                     Variable(gae) - 0.01 * player.entropies[i]
-            value_loss = sum(value_loss) #/ args.n_heads
+            value_loss = sum(value_loss) / args.n_heads
             player.model.zero_grad()
             (policy_loss + 0.5 * value_loss).backward()
             ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
