@@ -124,10 +124,20 @@ parser.add_argument(
     default=0.1,
     help='uncertain 的阈值')
 parser.add_argument(
+    '--im_sigma',
+    type=float,
+    default=0.1,
+    help='importance 的阈值')
+parser.add_argument(
     '--budget',
     type=int,
     default=10000,
     help='uncertain 的阈值')
+parser.add_argument(
+    '--rand_advice',
+    type=bool,
+    default=False,
+    help='是否随机寻求建议')
 
 # Based on
 # https://github.com/pytorch/examples/tree/master/mnist_hogwild

@@ -6,4 +6,4 @@ __pycache__/*
 /trained_models/*
 *.log
 run_logs/
-
+*.png

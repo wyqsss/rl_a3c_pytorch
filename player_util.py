@@ -2,7 +2,7 @@ from __future__ import division
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+import random
 
 class Agent(object):
     def __init__(self, model, env, args, state, demo=None):
@@ -23,6 +23,7 @@ class Agent(object):
         self.reward = 0
         self.sigma = self.args.sigma
         self.budget = self.args.budget
+        self.im_sigma = self.args.im_sigma
         self.gpu_id = -1
 
     def action_train(self):
@@ -33,18 +34,33 @@ class Agent(object):
         entropy = -(log_prob * prob).sum(1)
         self.entropies.append(entropy)
         action = prob.multinomial(1).data
+        log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
         # print(f"action is {action[0][0].cpu().numpy()}")
-        if self.args.n_heads > 1 and self.demonstration and self.budget.value > 0:
-            uncertainty = torch.var(torch.tensor(value))
-            # print(f"uncertain is {uncertainty}")
-            # print(f"budget is {self.budget.value}, device is {next(self.model.parameters()).device}")
-            if uncertainty > self.sigma:
+        if self.demonstration and self.budget.value > 0:
+            if self.args.n_heads > 1:
+                uncertainty = torch.var(torch.tensor(value))
+                # print(f"uncertain is {uncertainty}")
+                # print(f"budget is {self.budget.value}, device is {next(self.model.parameters()).device}")
+                if uncertainty > self.sigma:
+                    _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
+                    qs = F.softmax(qs, dim=1)
+                    action = qs.multinomial(1).data
+                    with self.budget.get_lock(): self.budget.value -= 1
+            elif self.args.rand_advice:
+                if random.random() < 0.5:
+                    _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
+                    qs = F.softmax(qs, dim=1)
+                    action = qs.multinomial(1).data
+                    with self.budget.get_lock(): self.budget.value -= 1
+            else:
                 _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
-                qs = F.softmax(qs, dim=1)
-                action = qs.multinomial(1).data
-                with self.budget.get_lock(): self.budget.value -= 1
+                im = torch.max(qs) - torch.min(qs)
+                if im > self.im_sigma:
+                    qs = F.softmax(qs, dim=1)
+                    action = qs.multinomial(1).data
+                    with self.budget.get_lock(): self.budget.value -= 1
 
-        log_prob = log_prob.gather(1, Variable(action))
+        # log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
         state, self.reward, self.done, self.info = self.env.step(
             action[0][0].cpu().numpy())
         self.state = torch.from_numpy(state).float()
