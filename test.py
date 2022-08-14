@@ -42,20 +42,20 @@ def test(args, shared_model, env_conf, epochs):
         with torch.cuda.device(gpu_id):
             player.model = player.model.cuda()
             player.state = player.state.cuda()
-    flag = True
+
     max_score = -22
     while True:
-        if flag:
-            if gpu_id >= 0:
-                with torch.cuda.device(gpu_id):
-                    player.model.load_state_dict(shared_model.state_dict())
-            else:
+
+        if gpu_id >= 0:
+            with torch.cuda.device(gpu_id):
                 player.model.load_state_dict(shared_model.state_dict())
-            ep = epochs.value
-            log['{}_log'.format(args.env)].info(f"ep is:  {epochs.value}")
-            left_advice = args.budget.value
-            player.model.eval()
-            flag = False
+        else:
+            player.model.load_state_dict(shared_model.state_dict())
+        ep = epochs.value
+        # log['{}_log'.format(args.env)].info(f"ep is:  {epochs.value}")
+        left_advice = args.budget.value
+        player.model.eval()
+
         
         roll_rewards_sum = 0
         roll_eps_len = 0
