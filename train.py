@@ -123,14 +123,14 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
             with epochs.get_lock(): epochs.value += 1
             player.clear_actions()
         else:
-            for i in reversed(range(len(player.rewards))):
+            for i in reversed(range(len(player.rewards))): # 返回的时逆序列
                 R = args.gamma * R + player.rewards[i]
-                advantage = R - player.values[i]
+                advantage = R - player.values[i]  # R(t) - V(t)
                 value_loss = value_loss + 0.5 * advantage.pow(2)
 
                 # Generalized Advantage Estimataion
                 delta_t = player.rewards[i] + args.gamma * \
-                    player.values[i + 1].data - player.values[i].data
+                    player.values[i + 1].data - player.values[i].data  # r + V(s') - V(s)  advantage V^
 
                 gae = gae * args.gamma * args.tau + delta_t
 

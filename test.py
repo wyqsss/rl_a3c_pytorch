@@ -52,51 +52,79 @@ def test(args, shared_model, env_conf, epochs):
             else:
                 player.model.load_state_dict(shared_model.state_dict())
             ep = epochs.value
+            log['{}_log'.format(args.env)].info(f"ep is:  {epochs.value}")
             left_advice = args.budget.value
             player.model.eval()
             flag = False
+        
+        roll_rewards_sum = 0
+        roll_eps_len = 0
+        for i in range(20):
+            while True:
+                player.action_test()
+                # log['{}_log'.format(args.env)].info(f"play action, info is {player.info}")
+                reward_sum += player.reward
 
-        player.action_test()
-        # log['{}_log'.format(args.env)].info(f"play action, info is {player.info}")
-        reward_sum += player.reward
+                if player.done and not player.info:
+                    state = player.env.reset()
+                    player.eps_len += 2
+                    player.state = torch.from_numpy(state).float()
+                    if gpu_id >= 0:
+                        with torch.cuda.device(gpu_id):
+                            player.state = player.state.cuda()
+                elif player.info:
+                    # num_tests += 1
+                    # reward_total_sum += reward_sum
+                    roll_rewards_sum += reward_sum
+                    roll_eps_len += player.eps_len
+                    # reward_mean = reward_total_sum / num_tests
+                    # log['{}_log'.format(args.env)].info(
+                    #     "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}, left advice {5}".
+                    #     format(
+                    #         time.strftime("%Hh %Mm %Ss",
+                    #                     time.gmtime(time.time() - start_time)),
+                    #         reward_sum, player.eps_len, reward_mean, ep, left_advice))
 
-        if player.done and not player.info:
-            state = player.env.reset()
-            player.eps_len += 2
-            player.state = torch.from_numpy(state).float()
-            if gpu_id >= 0:
-                with torch.cuda.device(gpu_id):
-                    player.state = player.state.cuda()
-        elif player.info:
-            flag = True
-            num_tests += 1
-            reward_total_sum += reward_sum
-            reward_mean = reward_total_sum / num_tests
-            log['{}_log'.format(args.env)].info(
-                "Time {0}, epoch {4}, episode reward {1}, episode length {2}, reward mean {3:.4f}, left advice {5}".
-                format(
-                    time.strftime("%Hh %Mm %Ss",
-                                  time.gmtime(time.time() - start_time)),
-                    reward_sum, player.eps_len, reward_mean, ep, left_advice))
+                    # if args.save_max and reward_sum >= max_score:
+                    #     max_score = reward_sum
+                    #     if gpu_id >= 0:
+                    #         with torch.cuda.device(gpu_id):
+                    #             state_to_save = player.model.state_dict()
+                    #             torch.save(state_to_save, '{0}{1}.dat'.format(
+                    #                 args.save_model_dir, args.env))
+                    #     else:
+                    #         state_to_save = player.model
+                    #         torch.save(state_to_save, '{0}{1}.dat'.format(
+                    #             args.save_model_dir, args.env))
 
-            if args.save_max and reward_sum >= max_score:
-                max_score = reward_sum
-                if gpu_id >= 0:
-                    with torch.cuda.device(gpu_id):
-                        state_to_save = player.model.state_dict()
+                    reward_sum = 0
+                    player.eps_len = 0
+                    state = player.env.reset()
+                    player.eps_len += 2
+                    # time.sleep(10)
+                    player.state = torch.from_numpy(state).float()
+                    if gpu_id >= 0:
+                        with torch.cuda.device(gpu_id):
+                            player.state = player.state.cuda()
+                    break
+        num_tests += 1  
+        reward_total_sum += roll_rewards_sum / 20
+        reward_mean = reward_total_sum / num_tests      
+        log['{}_log'.format(args.env)].info(
+                    "Time {0}, epoch {4}, episode avg_reward {1}, episode avg_length {2}, reward mean {3:.4f}, left advice {5}".
+                    format(
+                        time.strftime("%Hh %Mm %Ss",
+                                    time.gmtime(time.time() - start_time)),
+                        roll_rewards_sum / 20, roll_eps_len / 20, reward_mean, ep, left_advice))
+        if args.save_max and  (roll_rewards_sum / 20) >= max_score:
+                    max_score =  roll_rewards_sum / 20
+                    if gpu_id >= 0:
+                        with torch.cuda.device(gpu_id):
+                            state_to_save = player.model.state_dict()
+                            torch.save(state_to_save, '{0}{1}.dat'.format(
+                                args.save_model_dir, args.env))
+                    else:
+                        state_to_save = player.model
                         torch.save(state_to_save, '{0}{1}.dat'.format(
                             args.save_model_dir, args.env))
-                else:
-                    state_to_save = player.model
-                    torch.save(state_to_save, '{0}{1}.dat'.format(
-                        args.save_model_dir, args.env))
-
-            reward_sum = 0
-            player.eps_len = 0
-            state = player.env.reset()
-            player.eps_len += 2
-            time.sleep(10)
-            player.state = torch.from_numpy(state).float()
-            if gpu_id >= 0:
-                with torch.cuda.device(gpu_id):
-                    player.state = player.state.cuda()
+        time.sleep(10)
