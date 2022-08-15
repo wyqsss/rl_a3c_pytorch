@@ -127,4 +127,4 @@ def test(args, shared_model, env_conf, epochs):
                         state_to_save = player.model
                         torch.save(state_to_save, '{0}{1}.dat'.format(
                             args.save_model_dir, args.env))
-        time.sleep(10)
+        # time.sleep(10)
