@@ -4,7 +4,8 @@ from scipy.ndimage import gaussian_filter1d
 log_file1 = "run_logs/new_no_advice.log"
 log_file2 = "run_logs/new_RCMP.log"
 
-log_file3 = "run_logs/rand_advice.log"
+log_file3 = "run_logs/new_random.log"
+log_file4 = "run_logs/new_importance.log"
 
 invaders = "run_logs/SpaceInvaders_noadvice.log"
 invaders_rcmp = "run_logs/SpaceInvaders_rcmp.log"
@@ -19,9 +20,10 @@ def plt_log(logfile):
             continue
         epoch.append(int(float(items[8].split(',')[0])))
         reward.append(float(items[11].split(',')[0]))
-        # if float(items[8].split(',')[0]) > 3000000:
-        #     break
-    plt.plot(epoch, gaussian_filter1d(reward, sigma=2))
+        if float(items[8].split(',')[0]) > 3000000:
+            break
+    plt.plot(epoch, gaussian_filter1d(reward, sigma=1))
+
     print(f"epoch : {epoch[-1]}, reward : {reward[-1]}")
 
 # def plt_log_acc(logfile):
@@ -50,3 +52,4 @@ plt.margins(x=0)
 plt.legend(["noadvice", "rcmp"])
 plt.title("SpaceInvaders")
 plt.savefig("result")
+
