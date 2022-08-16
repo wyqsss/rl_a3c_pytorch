@@ -7,6 +7,7 @@ log_file2 = "run_logs/new_RCMP.log"
 log_file3 = "run_logs/rand_advice.log"
 
 invaders = "run_logs/SpaceInvaders_noadvice.log"
+invaders_rcmp = "run_logs/SpaceInvaders_rcmp.log"
 
 def plt_log(logfile):
     data = open(logfile, 'r')
@@ -44,7 +45,8 @@ def plt_log(logfile):
 # plt_log(log_file2)
 # plt_log(log_file3)
 plt_log(invaders)
+plt_log(invaders_rcmp)
 plt.margins(x=0)
-plt.legend(["noadvice"])
+plt.legend(["noadvice", "rcmp"])
 plt.title("SpaceInvaders")
 plt.savefig("result")
