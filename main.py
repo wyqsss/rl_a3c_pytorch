@@ -138,6 +138,21 @@ parser.add_argument(
     type=bool,
     default=False,
     help='是否随机寻求建议')
+parser.add_argument(
+    '--avg_ep',
+    type=int,
+    default=20,
+    help='测试时循环次数')
+parser.add_argument(
+    '--demo',
+    type=str,
+    default=None,
+    help='demonstration 的地址')
+parser.add_argument(
+    '--save_name',
+    type=str,
+    default=None,
+    help='log和模型 的保存地址')
 
 # Based on
 # https://github.com/pytorch/examples/tree/master/mnist_hogwild
@@ -147,6 +162,8 @@ parser.add_argument(
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    if args.save_name is None:
+        args.save_name = args.env
     torch.manual_seed(args.seed)
     if args.gpu_ids == -1:
         args.gpu_ids = [-1]
