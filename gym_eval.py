@@ -91,6 +91,23 @@ parser.add_argument(
     type=int,
     default=10000,
     help='uncertain 的阈值')
+
+parser.add_argument(
+    '--im_sigma',
+    type=float,
+    default=0.1,
+    help='importance 的阈值')
+
+parser.add_argument(
+    '--rand_advice',
+    type=bool,
+    default=False,
+    help='是否随机寻求建议')
+parser.add_argument(
+    '--avg_ep',
+    type=int,
+    default=20,
+    help='测试时循环次数')
 args = parser.parse_args()
 
 setup_json = read_config(args.env_config)

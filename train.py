@@ -23,9 +23,12 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
             optimizer = optim.Adam(
                 shared_model.parameters(), lr=args.lr, amsgrad=args.amsgrad)
     env.seed(args.seed + rank)
-    demo = A3Clstm(env.observation_space.shape[0], env.action_space)
-    demo.load_state_dict(torch.load("trained_models/demo.dat", map_location="cpu"))
-    demo.eval()
+    if args.demo:
+        demo = A3Clstm(env.observation_space.shape[0], env.action_space)
+        demo.load_state_dict(torch.load(args.demo, map_location="cpu"))
+        demo.eval()
+    else:
+        demo = None
     player = Agent(None, env, args, None, demo=demo)
     player.gpu_id = gpu_id
     player.model = A3Clstm(player.env.observation_space.shape[0],
@@ -37,7 +40,8 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
         with torch.cuda.device(gpu_id):
             player.state = player.state.cuda()
             player.model = player.model.cuda()
-            player.demonstration = player.demonstration.cuda()
+            if player.demonstration:
+                player.demonstration = player.demonstration.cuda()
     player.model.train()
     player.eps_len += 2
     while True:
