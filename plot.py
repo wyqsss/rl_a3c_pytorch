@@ -6,6 +6,8 @@ log_file2 = "run_logs/new_RCMP.log"
 
 log_file3 = "run_logs/rand_advice.log"
 
+invaders = "run_logs/SpaceInvaders_noadvice.log"
+
 def plt_log(logfile):
     data = open(logfile, 'r')
     reward = []
@@ -16,8 +18,8 @@ def plt_log(logfile):
             continue
         epoch.append(int(float(items[8].split(',')[0])))
         reward.append(float(items[11].split(',')[0]))
-        if float(items[8].split(',')[0]) > 3000000:
-            break
+        # if float(items[8].split(',')[0]) > 3000000:
+        #     break
     plt.plot(epoch, gaussian_filter1d(reward, sigma=2))
     print(f"epoch : {epoch[-1]}, reward : {reward[-1]}")
 
@@ -38,9 +40,11 @@ def plt_log(logfile):
 #     plt.plot(epoch, gaussian_filter1d(reward, sigma=2))
 #     print(f"epoch : {epoch[-1]}, reward : {reward[-1]}")
 
-plt_log(log_file1)
-plt_log(log_file2)
+# plt_log(log_file1)
+# plt_log(log_file2)
 # plt_log(log_file3)
+plt_log(invaders)
 plt.margins(x=0)
-plt.legend(["noadvice", "rcmp"])
+plt.legend(["noadvice"])
+plt.title("SpaceInvaders")
 plt.savefig("result")

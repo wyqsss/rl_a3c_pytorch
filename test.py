@@ -59,7 +59,7 @@ def test(args, shared_model, env_conf, epochs):
         
         roll_rewards_sum = 0
         roll_eps_len = 0
-        for i in range(20):
+        for i in range(args.avg_ep):
             while True:
                 player.action_test()
                 # log['{}_log'.format(args.env)].info(f"play action, info is {player.info}")
@@ -108,16 +108,16 @@ def test(args, shared_model, env_conf, epochs):
                             player.state = player.state.cuda()
                     break
         num_tests += 1  
-        reward_total_sum += roll_rewards_sum / 20
+        reward_total_sum += roll_rewards_sum / args.avg_ep
         reward_mean = reward_total_sum / num_tests      
         log['{}_log'.format(args.env)].info(
                     "Time {0}, epoch {4}, episode avg_reward {1}, episode avg_length {2}, reward mean {3:.4f}, left advice {5}".
                     format(
                         time.strftime("%Hh %Mm %Ss",
                                     time.gmtime(time.time() - start_time)),
-                        roll_rewards_sum / 20, roll_eps_len / 20, reward_mean, ep, left_advice))
-        if args.save_max and  (roll_rewards_sum / 20) >= max_score:
-                    max_score =  roll_rewards_sum / 20
+                        roll_rewards_sum / args.avg_ep, roll_eps_len / args.avg_ep, reward_mean, ep, left_advice))
+        if args.save_max and  (roll_rewards_sum / args.avg_ep) >= max_score:
+                    max_score =  roll_rewards_sum / args.avg_ep
                     if gpu_id >= 0:
                         with torch.cuda.device(gpu_id):
                             state_to_save = player.model.state_dict()
