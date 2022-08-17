@@ -12,4 +12,4 @@
 
 # nohup python main.py --env SpaceInvaders-v0 --workers 32 --gpu-ids 0 1 2 3 --budget 0 --amsgrad True > run_logs/SpaceInvaders_noadvice.log &
 # RCMP
-# nohup python main.py --env SpaceInvaders-v0 --workers 32 --gpu-ids 0 1 2 3 --demo trained_models/SpaceInvaders-v0_demo.dat --n_heads 5 --amsgrad True > run_logs/SpaceInvaders_rcmp.log &
+# nohup python main.py --env SpaceInvaders-v0 --workers 32 --gpu-ids 0 1 2 3 --demo trained_models/SpaceInvaders-v0_demo.dat --save_name SpaceInvaders_rcmp_divloss --n_heads 5 --amsgrad True > run_logs/SpaceInvaders_rcmp_divloss.log &
