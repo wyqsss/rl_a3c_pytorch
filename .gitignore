@@ -7,3 +7,5 @@ __pycache__/*
 *.log
 run_logs/
 *.png
+plot.py
+run.bash

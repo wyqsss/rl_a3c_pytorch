@@ -10,8 +10,6 @@ log_file4 = "run_logs/new_importance.log"
 invaders = "run_logs/SpaceInvaders_noadvice.log"
 invaders_rcmp = "run_logs/SpaceInvaders_rcmp.log"
 
-Qbert = "run_logs/Qbert_noadvice.log"
-
 def plt_log(logfile):
     data = open(logfile, 'r')
     reward = []
@@ -48,11 +46,10 @@ def plt_log(logfile):
 # plt_log(log_file1)
 # plt_log(log_file2)
 # plt_log(log_file3)
-# plt_log(invaders)
-# plt_log(invaders_rcmp)
-plt_log(Qbert)
+plt_log(invaders)
+plt_log(invaders_rcmp)
 plt.margins(x=0)
-plt.legend(["noadvice"])
-plt.title("Qbert")
+plt.legend(["noadvice", "rcmp"])
+plt.title("SpaceInvaders")
 plt.savefig("result")
 
