@@ -34,7 +34,7 @@ class Agent(object):
         entropy = -(log_prob * prob).sum(1)
         self.entropies.append(entropy)
         action = prob.multinomial(1).data
-        # log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
+        log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
         # print(f"action is {action[0][0].cpu().numpy()}")
         if self.demonstration and self.budget.value > 0:
             if self.args.n_heads > 1:
@@ -60,7 +60,7 @@ class Agent(object):
                     action = qs.multinomial(1).data
                     with self.budget.get_lock(): self.budget.value -= 1
 
-        log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
+        # log_prob = log_prob.gather(1, Variable(action))   # 是否应该受demonstration的action 影响？
         state, self.reward, self.done, self.info = self.env.step(
             action[0][0].cpu().numpy())
         self.state = torch.from_numpy(state).float()

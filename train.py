@@ -123,14 +123,14 @@ def train(rank, args, shared_model, optimizer, env_conf, epochs):
                     Variable(gae) - 0.01 * player.entropies[i]
             value_loss = sum(value_loss) / args.n_heads
             player.model.zero_grad()
-            # (policy_loss + 0.5 * value_loss).backward()
-            value_loss = value_loss*0.5 
-            value_loss.backward(retain_graph=True)
-            for name, param in player.model.named_parameters():
-                if ('conv' in name or 'lstm' in name) and param.grad is not None:
-                    param.grad.data *=1.0/float(args.n_heads)
-                    #print(name)
-            policy_loss.backward()
+            (policy_loss + 0.5 * value_loss).backward()
+            # value_loss = value_loss*0.5 
+            # value_loss.backward(retain_graph=True)
+            # for name, param in player.model.named_parameters():
+            #     if ('conv' in name or 'lstm' in name) and param.grad is not None:
+            #         param.grad.data *=1.0/float(args.n_heads)
+            #         #print(name)
+            # policy_loss.backward()
             ensure_shared_grads(player.model, shared_model, gpu=gpu_id >= 0)
             optimizer.step()
             with epochs.get_lock(): epochs.value += 1
