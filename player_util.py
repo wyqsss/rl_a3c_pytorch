@@ -48,6 +48,7 @@ class Agent(object):
                     with self.budget.get_lock(): self.budget.value -= 1
             elif self.args.rand_advice:
                 if random.random() < 0.5:
+                    # log_prob = prob[0][action[0][0]]*log_prob #  重要性采样，默认demonstration的概率为1
                     _, qs, _ = self.demonstration((Variable(self.state.unsqueeze(0)), (self.hx, self.cx)))
                     qs = F.softmax(qs, dim=1)
                     action = qs.multinomial(1).data

@@ -89,7 +89,7 @@ parser.add_argument(
 parser.add_argument(
     '--budget',
     type=int,
-    default=10000,
+    default=0,
     help='uncertain 的阈值')
 
 parser.add_argument(
@@ -108,6 +108,11 @@ parser.add_argument(
     type=int,
     default=20,
     help='测试时循环次数')
+parser.add_argument(
+    '--save_name',
+    type=str,
+    default=None,
+    help='log和模型 的保存地址')
 args = parser.parse_args()
 
 setup_json = read_config(args.env_config)
@@ -123,7 +128,7 @@ if gpu_id >= 0:
     torch.cuda.manual_seed(args.seed)
 
 saved_state = torch.load(
-    '{0}{1}.dat'.format(args.load_model_dir, args.env),
+    '{0}{1}.dat'.format(args.load_model_dir, args.save_name),
     map_location=lambda storage, loc: storage)
 
 log = {}
