@@ -9,6 +9,13 @@ log_file4 = "run_logs/new_importance.log"
 
 invaders = "run_logs/SpaceInvaders_noadvice.log"
 invaders_rcmp = "run_logs/SpaceInvaders_rcmp.log"
+invaders_rcmp_aceff = "run_logs/SpaceInvaders_rcmp_aceff.log"
+invaders_importance = "run_logs/SpaceInvaders_importance.log"
+invaders_random = "run_logs/SpaceInvaders_random.log"
+invaders_05importance =  "run_logs/SpaceInvaders_importance0.5.log"
+invaders_rcmp005 = "run_logs/SpaceInvaders_rcmp0.05.log"
+invaders_rcmp_imsample = "run_logs/SpaceInvaders_rcmp_imsample.log"
+invaders_rcmp02 = "run_logs/SpaceInvaders_rcmp0.2.log"
 
 Qbert = "run_logs/Qbert_noadvice.log"
 Qbert_rcmp = "run_logs/Qbert_rcmp.log"
@@ -70,6 +77,7 @@ def plt_used_advice(logfile):
 # plt_log(log_file1)
 # plt_log(log_file2)
 # plt_log(log_file3)
+
 # plt_log(invaders)
 # plt_log(invaders_rcmp)
 # plt_used_advice(Qbert)
@@ -78,15 +86,37 @@ def plt_used_advice(logfile):
 # plt_used_advice(Qbert_rcmp)
 # plt_used_advice(Qbert_importance05)
 
-plt_log(Qbert)
-plt_log(Qbert_rcmp)
-# plt_log(Qbert_rcmp02)
-plt_log(Qbert_random)
-# plt_log(Qbert_importance)
-plt_log(Qbert_importance05)
-plt.xlim(0, 1e7)
+# plt_log(Qbert)
+# plt_log(Qbert_rcmp)
+# # plt_log(Qbert_rcmp02)
+# plt_log(Qbert_random)
+# # plt_log(Qbert_importance)
+# plt_log(Qbert_importance05)
+# plt.xlim(0, 1e7)
+# plt.margins(x=0, y=0)
+# plt.legend(["noadvice", "rcmp", "random", "importance"])
+# plt.title("Qbert-v0")
+# plt.savefig("result")
+
+# plt_used_advice(invaders)
+# plt_used_advice(invaders_rcmp)
+# plt_log(invaders_rcmp_aceff)
+# plt_log(invaders_importance)
+# plt_used_advice(invaders_random)
+# plt_used_advice(invaders_05importance)
+# plt_log(invaders_rcmp005)
+# plt_log(invaders_rcmp_imsample)
+plt_log(invaders)
+plt_log(invaders_rcmp)
+plt_log(invaders_rcmp005)
+# plt_log(invaders_importance)
+# plt_log(invaders_random)
+# plt_log(invaders_05importance)
+plt_log(invaders_rcmp02)
 plt.margins(x=0, y=0)
-plt.legend(["noadvice", "rcmp", "random", "importance"])
-plt.title("Qbert-v0")
-plt.savefig("result")
+plt.xlim(0, 1e7)
+plt.legend(["noadvice", "rcmp", "rcmp0.05", "rcmp0.2"])
+plt.title("SpaceInvaders")
+plt.savefig("rcmp_compare")
+
 
