@@ -162,6 +162,13 @@ parser.add_argument(
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    SEED=1
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
+    torch.backends.cudnn.deterministic=True
+    torch.backends.cudnn.benchmark = False
+
+
     if args.save_name is None:
         args.save_name = args.env
     torch.manual_seed(args.seed)
